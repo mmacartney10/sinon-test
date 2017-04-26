@@ -55,6 +55,6 @@ describe('When the get function is called', () => {
       }
     }
 
-      index.get(request, response);
+    index.get(request, response);
   });
 });
