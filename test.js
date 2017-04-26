@@ -12,34 +12,29 @@ require('sinon-as-promised');
 
 var proxyquire = require('proxyquire');
 
-var index = require('./index.js');
-
-const requestPromise = {
-  get: function() {},
-};
-
 describe('When the get function is called', () => {
 
-  // var stub;
-  //
-  // beforeEach(function(done) {
-  //   stub = sinon.stub(requestPromise, 'get').yields({flights: [{bob: 'test'}]});
-  //   done();
-  // });
-  //
-  // after(function (done) {
-  //   requestPromise.get.restore();
-  //   done();
-  // });
+  var index;
+  var stub;
+  var url = 'http://api.magairports.com/v1/flights/departures/STN';
+  var body = JSON.stringify({Flights:[{Destination:'Antalya'}]});
+
+  beforeEach(function() {
+    requestPromise = sinon.stub();
+    index = proxyquire('./index.js', {
+      'request-promise': requestPromise
+    });
+  });
 
   it('Should return an object with the property Destination', () => {
 
     var request = new MockExpressRequest();
     var response = new MockExpressResponse();
 
-    // var result = stub().index.get(request, response).then(data => {
+    requestPromise.resolves(body);
+
     var result = index.get(request, response).then(data => {
-      return data._getJSON().Flights[0];
+      return JSON.parse(data._getJSON()).Flights[0];
     });
 
     return expect(result).to.eventually.have.property('Destination');

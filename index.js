@@ -23,7 +23,9 @@ var Index = function() {
   return {
     get: function(request, response) {
       return getAllFlightDepartures().then(flightDepartures => {
-        return response.send(flightDepartures);
+        // console.log('\nflightDepartures', flightDepartures, '\n');
+        // return response.send(flightDepartures);
+        return response.json(flightDepartures);
       }).catch(error => {
         console.error(error);
       });
