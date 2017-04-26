@@ -1,47 +1,60 @@
 var chai = require('chai');
 var expect = chai.expect;
 var chaiAsPromised = require('chai-as-promised');
-
 chai.use(chaiAsPromised);
-
-var MockExpressRequest = require('mock-express-request');
-var MockExpressResponse = require('mock-express-response');
-
 var sinon = require('sinon');
 require('sinon-as-promised');
 
-var proxyquire = require('proxyquire');
+var apiClient = require('request-promise');
+var flightApi = require('./flight-api')(apiClient);
+var index = require('./index.js')(flightApi);
 
-var index = require('./index.js');
-
-const requestPromise = {
-  get: function() {},
-};
 
 describe('When the get function is called', () => {
 
-  // var stub;
-  //
-  // beforeEach(function(done) {
-  //   stub = sinon.stub(requestPromise, 'get').yields({flights: [{bob: 'test'}]});
-  //   done();
-  // });
-  //
-  // after(function (done) {
-  //   requestPromise.get.restore();
-  //   done();
-  // });
+  var mockFlightData = { Flights: [{
+    "FlightNumber": "MT524",
+    "AorD": 1,
+    "Destination": "Antalya",
+    "Terminal": "T1",
+    "ScheduledDateTime": "2017-04-26T09:55:00",
+    "Status": "Airborne 10:33",
+    "LastStatusDateTime": "2017-04-26T10:33:00",
+    "CanFollow": false,
+    "Id": "MT524201704260955D",
+    "StatusColour": "none",
+    "Gate": "",
+    "AirportCode": "STN",
+    "DestinationAirportCode": "AYT"
+  }]}
 
-  it('Should return an object with the property Destination', () => {
+  beforeEach(() => {
+    sinon.stub(apiClient, 'get').resolves(mockFlightData);
+  });
 
-    var request = new MockExpressRequest();
-    var response = new MockExpressResponse();
+  afterEach(() => {
+    apiClient.get.restore();
+  });
 
-    // var result = stub().index.get(request, response).then(data => {
-    var result = index.get(request, response).then(data => {
-      return data._getJSON().Flights[0];
-    });
+  it('Should return an object with the Destination Antalya', done => {
 
-    return expect(result).to.eventually.have.property('Destination');
+    var request = {
+      params: {
+        airportCode: 'STN'
+      }
+    };
+
+    var response = {
+      send: function(data) {
+        try {
+          expect(data.Destination).to.equal('Antalya')
+          done();
+        } catch(e) {
+          done(e)
+        }
+      }
+    }
+
+      index.get(request, response);
   });
 });

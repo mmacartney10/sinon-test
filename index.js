@@ -1,34 +1,19 @@
-var requestPromise = require('request-promise');
-
-var Index = function() {
-
-  var getOptions = {
-    method: 'get',
-    url: 'http://api.magairports.com/v1/flights/departures/STN',
-    headers: {
-      'x-api-key': ''
-    }
-  }
+var Index = function(flightApi) {
 
   function getAllFlightDepartures() {
-    return new Promise((resolve, reject) => {
-      requestPromise(getOptions).then(data => {
-        return resolve(data);
-      }).catch(error => {
-        return reject(error);
-      });
-    });
+    return requestPromise(getOptions);
   }
 
   return {
     get: function(request, response) {
-      return getAllFlightDepartures().then(flightDepartures => {
-        return response.send(flightDepartures);
+      return flightApi.getFlightData(request.params.airportCode).then(departureData => {
+        let firstFlight = departureData.Flights[0];
+        response.send(firstFlight);
       }).catch(error => {
-        console.error(error);
+        response.sendStatus(500);
       });
     }
   }
 }
 
-module.exports = new Index();
+module.exports = Index;
